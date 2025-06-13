@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { BucketListItem } from '../types';
 
+const DEFAULT_AVATAR = 'https://t3.ftcdn.net/jpg/03/46/83/96/240_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg';
+
 const ItemDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -96,11 +98,11 @@ const ItemDetail: React.FC = () => {
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-500 text-sm">
-                      {item.creator.username?.charAt(0).toUpperCase() || '?'}
-                    </span>
-                  </div>
+                  <img
+                    src={DEFAULT_AVATAR}
+                    alt={item.creator.username}
+                    className="w-8 h-8 rounded-full"
+                  />
                 )}
                 <span className="text-sm text-gray-600">Created by {item.creator.username || 'Anonymous'}</span>
               </div>
@@ -135,9 +137,16 @@ const ItemDetail: React.FC = () => {
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center p-2">
-                      <p className="text-sm font-medium">
-                        {completion.profiles?.username || 'Anonymous'}
-                      </p>
+                      <div className="flex items-center justify-center space-x-2 mb-1">
+                        <img
+                          src={completion.profiles?.avatar_url || DEFAULT_AVATAR}
+                          alt={`${completion.profiles?.username || 'Anonymous'}'s avatar`}
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <p className="text-sm font-medium">
+                          {completion.profiles?.username || 'Anonymous'}
+                        </p>
+                      </div>
                       <p className="text-xs">
                         {new Date(completion.completed_at).toLocaleDateString()}
                       </p>
