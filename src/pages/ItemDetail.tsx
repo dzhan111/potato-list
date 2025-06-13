@@ -39,8 +39,17 @@ const ItemDetail: React.FC = () => {
         throw error;
       }
 
-      console.log('Fetched item:', data);
-      return data;
+      // Get the creator's profile
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('username, avatar_url')
+        .eq('id', data.created_by)
+        .single();
+
+      return {
+        ...data,
+        creator: creatorProfile
+      };
     },
   });
 
@@ -73,33 +82,66 @@ const ItemDetail: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold mb-4">{item.title}</h1>
-        <p className="text-gray-600 mb-6">{item.description}</p>
-
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-3">Completions</h2>
-          {item.completions && item.completions.length > 0 ? (
-            <div className="grid gap-4">
-              {item.completions.map((completion) => (
-                <div key={completion.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Header with title and complete button */}
+        <div className="p-6 border-b border-gray-200 flex justify-between items-start">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{item.title}</h1>
+            {item.creator && (
+              <div className="flex items-center space-x-2">
+                {item.creator.avatar_url ? (
                   <img
-                    src={completion.profiles?.avatar_url || 'https://via.placeholder.com/40'}
-                    alt={`${completion.profiles?.username || 'User'}'s avatar`}
-                    className="w-10 h-10 rounded-full"
+                    src={item.creator.avatar_url}
+                    alt={item.creator.username}
+                    className="w-8 h-8 rounded-full"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">{completion.profiles?.username || 'Anonymous'}</p>
-                      <p className="text-sm text-gray-500">
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">
+                      {item.creator.username?.charAt(0).toUpperCase() || '?'}
+                    </span>
+                  </div>
+                )}
+                <span className="text-sm text-gray-600">Created by {item.creator.username || 'Anonymous'}</span>
+              </div>
+            )}
+          </div>
+          {user && (
+            <button
+              onClick={() => setShowCompleteForm(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Complete This Item
+            </button>
+          )}
+        </div>
+
+        {/* Description */}
+        <div className="p-6 border-b border-gray-200">
+          <p className="text-gray-700 whitespace-pre-wrap">{item.description}</p>
+        </div>
+
+        {/* Completions */}
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Completions</h2>
+          {item.completions && item.completions.length > 0 ? (
+            <div className="grid grid-cols-4 gap-4">
+              {item.completions.map((completion) => (
+                <div key={completion.id} className="relative group">
+                  <img
+                    src={completion.photo_url}
+                    alt="Completion"
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center p-2">
+                      <p className="text-sm font-medium">
+                        {completion.profiles?.username || 'Anonymous'}
+                      </p>
+                      <p className="text-xs">
                         {new Date(completion.completed_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <img
-                      src={completion.photo_url}
-                      alt="Completion photo"
-                      className="mt-2 rounded-lg max-w-full h-auto"
-                    />
                   </div>
                 </div>
               ))}
@@ -108,32 +150,23 @@ const ItemDetail: React.FC = () => {
             <p className="text-gray-500">No completions yet. Be the first to complete this item!</p>
           )}
         </div>
-
-        {user && !hasCompleted && (
-          <button
-            onClick={() => setShowCompleteForm(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            Complete This Item
-          </button>
-        )}
-
-        {!user && (
-          <button
-            onClick={() => navigate('/auth')}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            Sign In to Complete
-          </button>
-        )}
       </div>
 
-      {showCompleteForm && (
-        <CompleteItemForm
-          itemId={item.id}
-          onComplete={handleComplete}
-          onClose={() => setShowCompleteForm(false)}
-        />
+      {/* Complete Item Form Modal */}
+      {showCompleteForm && id && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6">
+            <h2 className="text-2xl font-bold mb-4">Complete Item</h2>
+            <CompleteItemForm
+              itemId={id}
+              onComplete={() => {
+                setShowCompleteForm(false);
+                refetch();
+              }}
+              onClose={() => setShowCompleteForm(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

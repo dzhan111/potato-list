@@ -3,36 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-interface AuthProps {
-  onAuthSuccess?: () => void;
-}
-
-const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
-  const [isSignUp, setIsSignUp] = useState(false);
+const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
+      setAvatarFile(e.target.files[0]);
     }
   };
 
   const uploadProfilePicture = async (userId: string) => {
-    if (!profilePicture) return null;
+    if (!avatarFile) return null;
 
-    const fileExt = profilePicture.name.split('.').pop();
-    const fileName = `${userId}/${Math.random()}.${fileExt}`;
+    const fileExt = avatarFile.name.split('.').pop();
+    const fileName = `profile-pictures/${userId}/${Math.random()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(fileName, profilePicture);
+      .upload(fileName, avatarFile);
 
     if (uploadError) throw uploadError;
 
@@ -45,48 +41,44 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user && isSignUp && !username) {
-      setError('Username is required for sign up');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
       if (isSignUp) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        if (!username) {
+          throw new Error('Username is required');
+        }
+
+        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         });
-        if (authError) throw authError;
-        if (!authData.user) throw new Error('No user created');
 
-        // Upload profile picture if provided
+        if (signUpError) throw signUpError;
+        if (!user) throw new Error('No user returned from sign up');
+
         let avatarUrl = null;
-        if (profilePicture) {
-          avatarUrl = await uploadProfilePicture(authData.user.id);
+        if (avatarFile) {
+          avatarUrl = await uploadProfilePicture(user.id);
         }
 
-        // Update profile with username and avatar
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             username,
             avatar_url: avatarUrl,
           })
-          .eq('id', authData.user.id);
+          .eq('id', user.id);
 
         if (profileError) throw profileError;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
       }
-      
-      onAuthSuccess?.();
+
+      const { error: signInError } = await signIn(email, password);
+      if (signInError) throw signInError;
+
+      // Redirect to home page after successful authentication
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -94,99 +86,122 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
     }
   };
 
+  const useTestAccount = () => {
+    setEmail('barack@gmail.com');
+    setPassword('barack');
+  };
+
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">
-        {isSignUp ? 'Create Account' : 'Sign In'}
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
+    <div className="max-w-md mx-auto py-8 px-4">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold mb-6">
+          {isSignUp ? 'Create Account' : 'Sign In'}
+        </h2>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        {isSignUp && (
-          <>
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
+        {!isSignUp && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Test Account</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Use this account to test the application:
+            </p>
+            <div className="text-sm">
+              <p><span className="font-medium">Email:</span> barack@gmail.com</p>
+              <p><span className="font-medium">Password:</span> barack</p>
             </div>
-
-            <div>
-              <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
-                Profile Picture
-              </label>
-              <input
-                id="profilePicture"
-                type="file"
-                accept="image/*"
-                onChange={handleProfilePictureChange}
-                className="mt-1 block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-md file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-              />
-            </div>
-          </>
+            <button
+              onClick={useTestAccount}
+              className="mt-3 text-sm text-blue-600 hover:text-blue-800"
+            >
+              Use Test Account
+            </button>
+          </div>
         )}
 
-        {error && (
-          <div className="text-red-500 text-sm">{error}</div>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <>
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-        </button>
-      </form>
+              <div>
+                <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">
+                  Profile Picture (optional)
+                </label>
+                <input
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="mt-1 block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
+                />
+              </div>
+            </>
+          )}
 
-      <div className="mt-4 text-center">
-        <button
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="text-blue-500 hover:text-blue-600"
-        >
-          {isSignUp
-            ? 'Already have an account? Sign In'
-            : "Don't have an account? Sign Up"}
-        </button>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="w-full text-sm text-gray-600 hover:text-gray-800"
+          >
+            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+          </button>
+        </form>
       </div>
     </div>
   );

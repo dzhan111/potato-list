@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   avatar_url?: string;
   username?: string;
 }
@@ -18,6 +18,10 @@ export interface BucketListItem {
   created_at: string;
   created_by: string;
   is_public: boolean;
+  creator?: {
+    username: string;
+    avatar_url?: string;
+  };
   completions?: Completion[];
 }
 
