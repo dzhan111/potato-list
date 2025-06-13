@@ -76,7 +76,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Bucket List</h1>
+        <h1 className="text-3xl font-bold">Potato List</h1>
         <button
           onClick={handleAddClick}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
@@ -97,14 +97,6 @@ const HomePage: React.FC = () => {
               to={`/item/${item.id}`}
               className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
             >
-              <div className="flex items-center space-x-2 mb-3">
-                <img
-                  src={item.profiles?.avatar_url || DEFAULT_AVATAR}
-                  alt={`${item.profiles?.username || 'Anonymous'}'s avatar`}
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="text-sm text-gray-600">Created by {item.profiles?.username || 'Anonymous'}</span>
-              </div>
               <h2 className="text-xl font-semibold mb-2">{item.title}</h2>
               <p className="text-gray-600 mb-4">{item.description}</p>
               <div className="mt-4 pt-4 border-t border-gray-100">
