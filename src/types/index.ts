@@ -18,7 +18,8 @@ export interface BucketListItem {
   created_at: string;
   created_by: string;
   is_public: boolean;
-  creator?: {
+  profiles?: {
+    id: string;
     username: string;
     avatar_url?: string;
   };

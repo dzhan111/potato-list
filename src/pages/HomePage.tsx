@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { BucketListItem } from '../types';
 
+const DEFAULT_AVATAR = 'https://t3.ftcdn.net/jpg/03/46/83/96/240_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg';
+
 const HomePage: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const { user } = useAuth();
@@ -95,6 +97,14 @@ const HomePage: React.FC = () => {
               to={`/item/${item.id}`}
               className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
             >
+              <div className="flex items-center space-x-2 mb-3">
+                <img
+                  src={item.profiles?.avatar_url || DEFAULT_AVATAR}
+                  alt={`${item.profiles?.username || 'Anonymous'}'s avatar`}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="text-sm text-gray-600">Created by {item.profiles?.username || 'Anonymous'}</span>
+              </div>
               <h2 className="text-xl font-semibold mb-2">{item.title}</h2>
               <p className="text-gray-600 mb-4">{item.description}</p>
               <div className="mt-4 pt-4 border-t border-gray-100">
@@ -105,7 +115,7 @@ const HomePage: React.FC = () => {
                       {item.completions.slice(0, 3).map((completion) => (
                         <div key={completion.id} className="flex items-center">
                           <img
-                            src={completion.profiles?.avatar_url || 'https://via.placeholder.com/40'}
+                            src={completion.profiles?.avatar_url || DEFAULT_AVATAR}
                             alt={`${completion.profiles?.username || 'User'}'s avatar`}
                             className="w-8 h-8 rounded-full border-2 border-white"
                             title={completion.profiles?.username || 'Anonymous'}

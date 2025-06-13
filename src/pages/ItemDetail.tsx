@@ -50,7 +50,7 @@ const ItemDetail: React.FC = () => {
 
       return {
         ...data,
-        creator: creatorProfile
+        profiles: creatorProfile
       };
     },
   });
@@ -89,22 +89,22 @@ const ItemDetail: React.FC = () => {
         <div className="p-6 border-b border-gray-200 flex justify-between items-start">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{item.title}</h1>
-            {item.creator && (
+            {item.profiles && (
               <div className="flex items-center space-x-2">
-                {item.creator.avatar_url ? (
+                {item.profiles.avatar_url ? (
                   <img
-                    src={item.creator.avatar_url}
-                    alt={item.creator.username}
+                    src={item.profiles.avatar_url}
+                    alt={item.profiles.username}
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
                   <img
                     src={DEFAULT_AVATAR}
-                    alt={item.creator.username}
+                    alt={item.profiles.username}
                     className="w-8 h-8 rounded-full"
                   />
                 )}
-                <span className="text-sm text-gray-600">Created by {item.creator.username || 'Anonymous'}</span>
+                <span className="text-sm text-gray-600">Created by {item.profiles.username || 'Anonymous'}</span>
               </div>
             )}
           </div>
