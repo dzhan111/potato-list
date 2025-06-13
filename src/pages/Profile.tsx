@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Completion } from '../types';
@@ -176,24 +177,68 @@ const Profile: React.FC = () => {
           {completions && completions.length > 0 ? (
             <div className="grid gap-4">
               {completions.map((completion) => (
-                <div key={completion.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <img
-                    src={completion.photo_url}
-                    alt="Completion"
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium">{completion.bucket_list_items?.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      Completed on {new Date(completion.completed_at).toLocaleDateString()}
-                    </p>
-                    {completion.bucket_list_items?.description && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {completion.bucket_list_items.description}
+                <Link
+                  key={completion.id}
+                  to={`/item/${completion.bucket_list_item_id}`}
+                  className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start space-x-4 p-4">
+                    <div className="relative">
+                      <img
+                        src={completion.photo_url}
+                        alt="Completion"
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <svg
+                          className="w-8 h-8 text-white opacity-0 hover:opacity-100 transition-opacity duration-200"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900">{completion.bucket_list_items?.title}</h3>
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Completed on {new Date(completion.completed_at).toLocaleDateString()}
                       </p>
-                    )}
+                      {completion.bucket_list_items?.description && (
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                          {completion.bucket_list_items.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
