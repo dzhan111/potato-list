@@ -11,13 +11,6 @@ export interface Profile {
   avatar_url?: string;
 }
 
-export interface Completion {
-  id: string;
-  photo_url: string;
-  completed_at: string;
-  profiles?: Profile;
-}
-
 export interface BucketListItem {
   id: string;
   title: string;
@@ -26,4 +19,14 @@ export interface BucketListItem {
   created_by: string;
   is_public: boolean;
   completions?: Completion[];
+}
+
+export interface Completion {
+  id: string;
+  photo_url: string;
+  completed_at: string;
+  user_id: string;
+  bucket_list_item_id: string;
+  profiles?: Profile;
+  bucket_list_items?: BucketListItem;
 } 

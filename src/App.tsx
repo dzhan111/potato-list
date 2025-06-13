@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import ItemDetail from './pages/ItemDetail';
+import Profile from './pages/Profile';
 
 const queryClient = new QueryClient();
 
@@ -33,7 +34,7 @@ const App: React.FC = () => {
                   path="/profile"
                   element={
                     <ProtectedRoute>
-                      <div>Profile Page</div>
+                      <Profile />
                     </ProtectedRoute>
                   }
                 />
