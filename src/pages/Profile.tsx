@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Completion } from '../types';
 
+const DEFAULT_AVATAR = 'https://t3.ftcdn.net/jpg/03/46/83/96/240_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg';
+
 const Profile: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -112,7 +114,7 @@ const Profile: React.FC = () => {
         <div className="flex items-start space-x-6">
           <div className="flex-shrink-0">
             <img
-              src={profile?.avatar_url || 'https://via.placeholder.com/150'}
+              src={profile?.avatar_url || DEFAULT_AVATAR}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover"
             />
